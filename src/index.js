@@ -15,7 +15,7 @@ import {
     BREEDS_END_POINT: '/breeds',
     SEARCH_END_POINT: '/images/search',
     API_KEY:
-      'live_M0UW1pIqNDUHMsk829omTs9pLbOOPCqFHZrrxuqtRu734aLGOg4CW098pDNOSI2f',
+      'live_oG0gUaOwbibcmi2eBezSblVvbqSjdbfuvshHuXiQoBkRvcpZoUzCcMFST5ovdZlz',
   };
   
   export const allReferences = {

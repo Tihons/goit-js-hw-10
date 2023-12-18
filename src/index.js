@@ -1,68 +1,58 @@
-import Notiflix from 'notiflix';
-import SlimSelect from 'slim-select';
-import 'slim-select/dist/slimselect.css';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import { fetchBreeds, fetchCatByBreed } from './cat-api';
 
 const select = document.querySelector('.breed-select');
 const loader = document.querySelector('.loader');
 const catInfo = document.querySelector('.cat-info');
-
-import { fetchBreeds, fetchCatByBreed } from './cat-api.js';
+const body = document.querySelector('body');
 
 select.style.visibility = 'hidden';
 
 fetchBreeds()
   .then(breeds => {
     select.style.visibility = 'visible';
-
     loader.style.display = 'none';
 
-    const cats = breeds
-      .map(
-        breed => `
-    <option value="${breed.id}">${breed.name}</optiom>
-    `
-      )
+    const cat = breeds
+      .map(breed => `<option value="${breed.id}">${breed.name}</option>`)
       .join('');
 
-    select.insertAdjacentHTML('beforeend', cats);
-    new SlimSelect({
-      select: select,
-    });
+    select.insertAdjacentHTML('beforeend', cat);
   })
   .catch(error => {
+    console.log(error);
     loader.style.display = 'none';
-   
-    Notiflix.Notify.failure(
-      'Oops! Something went wrong! Try reloading the page!'
-    );
+    Notify.failure('Oops! Something went wrong! Try reloading the page!');
   });
 
 select.addEventListener('change', function () {
-  const selectedBreedId = this.value;
   catInfo.innerHTML = '';
+  const selectedBreed = this.value;
 
   loader.style.display = 'block';
 
-  fetchCatByBreed(selectedBreedId)
+  fetchCatByBreed(selectedBreed)
     .then(breeds => {
       loader.style.display = 'none';
-
       const catData = breeds[0];
+
       catInfo.innerHTML = `
-        <div><img src="${catData.url}" border ="1px solid black" width ="450"/></div>
-        <div>
-        <h2>${catData.breeds[0].name}</h2>
-        <p>${catData.breeds[0].description}</p>
-        <p>Temperament: ${catData.breeds[0].temperament}</p>
-        </div>
-        `;
+    <div><img src="${catData.url}" width="400" alt="${catData.breeds[0].name}"></div>
+    <div>
+    <h3>${catData.breeds[0].name}</h3>
+    <p>Description: ${catData.breeds[0].description}</p>
+    <p>Temperament: ${catData.breeds[0].temperament}</p>
+    </div>
+    `;
 
       catInfo.style.display = 'flex';
-      catInfo.style.gap = '20px';
+      catInfo.style.gap = '30px';
+      catInfo.style.marginTop = '50px';
     })
     .catch(error => {
-      Notiflix.Notify.failure(
-        'Oops! Something went wrong! Try reloading the page!'
-      );
+      console.log(error);
+      Notify.failure('Oops! Something went wrong! Try reloading the page!');
     });
 });
+
+body.style.backgroundColor = '#FDFEF7';

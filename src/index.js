@@ -51,6 +51,7 @@ select.addEventListener('change', function () {
     })
     .catch(error => {
       console.log(error);
+      loader.style.display = 'block';
       Notify.failure('Oops! Something went wrong! Try reloading the page!');
     });
 });

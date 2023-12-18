@@ -1,88 +1,68 @@
-import {
-    createMarkupSelect,
-    createMarkupCatInfo,
-    onStart,
-    onStartOk,
-    onStartNotOk,
-    onStatusOk,
-    onStatusNotOk,
-  } from './markup';
-  import { fetchBreeds, fetchBreedsCurrentId } from './cat-api';
-  import Notiflix from 'notiflix';
-  
-  export const allParameters = {
-    BASE_URL: 'https://api.thecatapi.com/v1',
-    BREEDS_END_POINT: '/breeds',
-    SEARCH_END_POINT: '/images/search',
-    API_KEY:
-      'live_oG0gUaOwbibcmi2eBezSblVvbqSjdbfuvshHuXiQoBkRvcpZoUzCcMFST5ovdZlz',
-  };
-  
-  export const allReferences = {
-    selectContainer: document.querySelector('.breed-select'),
-    catContainer: document.querySelector('.cat-info'),
-    loaderElement: document.querySelector('.loader'),
-    errorElement: document.querySelector('.error'),
-  };
-  
-  onStart(
-    allReferences.loaderElement,
-    allReferences.errorElement,
-    allReferences.selectContainer,
-    allReferences.catContainer
-  );
-  
-  fetchBreeds(allParameters.API_KEY)
-    .then(data => {
-      console.log(data);
-      onStartOk(
-        allReferences.loaderElement,
-        allReferences.errorElement,
-        allReferences.selectContainer,
-        allReferences.catContainer
-      );
-      allReferences.selectContainer.innerHTML = createMarkupSelect(data);
-      allReferences.selectContainer.addEventListener(
-        'change',
-        onChangeSelectContainer
-      );
+import Notiflix from 'notiflix';
+import SlimSelect from 'slim-select';
+import 'slim-select/dist/slimselect.css';
+
+const select = document.querySelector('.breed-select');
+const loader = document.querySelector('.loader');
+const catInfo = document.querySelector('.cat-info');
+
+import { fetchBreeds, fetchCatByBreed } from './cat-api.js';
+
+select.style.visibility = 'hidden';
+
+fetchBreeds()
+  .then(breeds => {
+    select.style.visibility = 'visible';
+
+    loader.style.display = 'none';
+
+    const cats = breeds
+      .map(
+        breed => `
+    <option value="${breed.id}">${breed.name}</optiom>
+    `
+      )
+      .join('');
+
+    select.insertAdjacentHTML('beforeend', cats);
+    new SlimSelect({
+      select: select,
+    });
+  })
+  .catch(error => {
+    loader.style.display = 'none';
+   
+    Notiflix.Notify.failure(
+      'Oops! Something went wrong! Try reloading the page!'
+    );
+  });
+
+select.addEventListener('change', function () {
+  const selectedBreedId = this.value;
+  catInfo.innerHTML = '';
+
+  loader.style.display = 'block';
+
+  fetchCatByBreed(selectedBreedId)
+    .then(breeds => {
+      loader.style.display = 'none';
+
+      const catData = breeds[0];
+      catInfo.innerHTML = `
+        <div><img src="${catData.url}" border ="1px solid black" width ="450"/></div>
+        <div>
+        <h2>${catData.breeds[0].name}</h2>
+        <p>${catData.breeds[0].description}</p>
+        <p>Temperament: ${catData.breeds[0].temperament}</p>
+        </div>
+        `;
+
+      catInfo.style.display = 'flex';
+      catInfo.style.gap = '20px';
     })
     .catch(error => {
-      console.log('!fetchBreeds - ERROR!', error);
       Notiflix.Notify.failure(
         'Oops! Something went wrong! Try reloading the page!'
       );
-      onStartNotOk(
-        allReferences.loaderElement,
-        allReferences.errorElement,
-        allReferences.selectContainer,
-        allReferences.catContainer
-      );
     });
-  
-  function onChangeSelectContainer(evt) {
-    const catCurrentId = evt.currentTarget.value;
-  
-    fetchBreedsCurrentId(allParameters.API_KEY, catCurrentId)
-      .then(data => {
-        onStatusOk(
-          allReferences.loaderElement,
-          allReferences.errorElement,
-          allReferences.selectContainer,
-          allReferences.catContainer
-        );
-        allReferences.catContainer.innerHTML = createMarkupCatInfo(data);
-      })
-      .catch(error => {
-        onStatusNotOk(
-          allReferences.loaderElement,
-          allReferences.errorElement,
-          allReferences.selectContainer,
-          allReferences.catContainer
-        );
-        console.log('!fetchBreedsCurrentId - ERROR!', error);
-        Notiflix.Notify.failure(
-          'Oops! Something went wrong! Try reloading the page!'
-        );
-      });
-  }
+});

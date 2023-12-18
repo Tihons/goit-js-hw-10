@@ -1,40 +1,28 @@
-import { onCheck } from './markup';
-import { allParameters, allReferences } from './index';
+import axios from 'axios';
 
-export function fetchBreeds(api_key) {
-  const queryParameter = new URLSearchParams({
-    api_key,
-  });
+axios.defaults.headers.common['x-api-key'] =
+  'live_pAZ6WbO1nCGhkySDJ8i1njyLsNqBBlqNUElKpa6Og6dZe9NxQ3gNeRBtJVNYbdFJ';
 
-  return fetch(
-    `${allParameters.BASE_URL}${allParameters.BREEDS_END_POINT}?${queryParameter}`
-  ).then(result => {
-    if (!result) {
-      throw new Error(result.statusText);
-    }
+const catUrl = 'https://api.thecatapi.com/v1';
 
-    return result.json();
-  });
+function fetchBreeds() {
+  return axios
+    .get(`${catUrl}/breeds`)
+    .then(response => response.data)
+    .catch(error => {
+      console.log(error);
+      throw error;
+    });
 }
 
-export function fetchBreedsCurrentId(api_key, catId) {
-  const queryParameter = new URLSearchParams({
-    breed_ids: catId,
-    api_key,
-  });
-  onCheck(
-    allReferences.loaderElement,
-    allReferences.errorElement,
-    allReferences.selectContainer,
-    allReferences.catContainer
-  );
-  return fetch(
-    `${allParameters.BASE_URL}${allParameters.SEARCH_END_POINT}?${queryParameter}`
-  ).then(result => {
-    if (!result) {
-      throw new Error(result.statusText);
-    }
-
-    return result.json();
-  });
+function fetchCatByBreed(breedId) {
+  return axios
+    .get(`${catUrl}/images/search?breed_ids=${breedId}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.log(error);
+      throw error;
+    });
 }
+
+export { fetchCatByBreed, fetchBreeds };
